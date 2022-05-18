@@ -5,6 +5,8 @@
 Takes as input a time series of values (importance or excitation values
 for example) and returns a time series of estimated Tononi Phi values.
 
+Author: Matthew Iklé
+
 # How to run
 
 cd to the root project dir and build Docker container:
