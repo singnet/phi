@@ -1,6 +1,5 @@
 import numpy as np
-import phi_params_27Apr22 as conf
-import nodes_conf as nodes_conf
+import phi_params as conf
 
 
 n = conf.num_of_bins
@@ -12,7 +11,8 @@ OUTPUT: int in range 0 to num_of_bins**3 -1
 """
 def get_i_fr_tuple(t):
     n = conf.num_of_bins
-    N = nodes_conf.num_of_nodes
+    with open("nodes_conf.txt") as f:
+        N = int(f.readline())
     i = 0
     for j in range(N):
         i += (t[j] - 1) * n ** (N-j-1)
@@ -83,90 +83,91 @@ def hash2list(hsh):
 
 
 def cal_p(state_tuple, tuple_hash, argument):
-
-	n = conf.num_of_bins
-	N = nodes_conf.num_of_nodes
-	"""
-	Create a count vector providing the probability counts (above the base number) for each node/bin combination
+    """
+    Create a count vector providing the probability counts (above the base number) for each node/bin combination
 """
 
-	count = {}
+    n = conf.num_of_bins
+    with open("nodes_conf.txt") as f:
+        N = int(f.readline())
 
-	#Pe(Xt|Xt-1=X) calculation
-	if argument == 0:
-	
-	    #Initilize varibles
-		tuple_t1 = tuple_hash[state_tuple] #Get the list of information
-		tuple_t = tuple_t1[1] #Grab the post information hash
-#		print(tuple_t)
-		tuple_t_key = list(tuple_t.keys()) #Make a list containg all the # of keys
-		tuple_t_val = list(tuple_t.values()) #Make a list containg all the # of values
-		prob_total = sum(tuple_t_val) #Get  the total occurnces
-		prob = {}
-		for node in range(0, N):   
-			prob_dict = {}
-			for value in range(n):
-				value_count = 0
-				for key in range(len(tuple_t_key)):
-					if tuple_t_key[key][node] == value + 1:
-						value_count += tuple_t_val[key]
-				if value in prob_dict.keys():
-					prob_dict[value] += value_count
-				elif value_count > 0:
-					prob_dict[value] = value_count
-			for value in prob_dict.keys():
-				prob_dict[value] = prob_dict[value]/prob_total
-			prob[node] = prob_dict
-#			print('prob = ', prob)
-		prob_dist_whole = {}
-		for key in tuple_t.keys():
-#			print(key)
-			key2 = get_i_fr_tuple(key)
-#			print(key2)
-			prob_dist_whole[key2] = 1
-			for node in range(N):
-				prob_dist_whole[key2] *= prob[node][key[node] - 1]                        
-		return prob_dist_whole
+    count = {}
 
-	#Pc(Xt-1|Xt=X)  calculation	
-	elif argument == 1:
-	
-	    #Initilize varibles
-		tuple_t1 = tuple_hash[state_tuple] #Get the list of information
-		tuple_t = tuple_t1[2] #Grab the post information hash
-		tuple_t_key = list(tuple_t.keys()) #Make a list containg all the # of keys
-		tuple_t_val = list(tuple_t.values()) #Make a list containg all the # of values
-		prob_total = sum(tuple_t_val) #Get  the total occurnces
-		prob = {}
-		for node in range(0, N):   
-			prob_dict = {}
-			for value in range(n):
-				value_count = 0
-				for key in range(len(tuple_t_key)):
-					if tuple_t_key[key][node] == value + 1:
-						value_count += tuple_t_val[key]
-				if value in prob_dict.keys():
-					prob_dict[value] += value_count
-				elif value_count > 0:
-					prob_dict[value] = value_count
-			for value in prob_dict.keys():
-				prob_dict[value] = prob_dict[value]/prob_total
-			prob[node] = prob_dict
-#			print(prob)
-		prob_dist_whole = {}
-		for key in tuple_t.keys():
-#			print(key)
-			key2 = get_i_fr_tuple(key)
-#			print(key2)
-			prob_dist_whole[key2] = 1
-			for node in range(N):
-				prob_dist_whole[key2] *= prob[node][key[node] - 1]                        
-		return prob_dist_whole
-	
-	#There should be no other value than 0 or one passed to this	
-	else:
-	    raise ValueError("Bad value sent in args for cal_p")
-	    
+    #Pe(Xt|Xt-1=X) calculation
+    if argument == 0:
+    
+        #Initilize varibles
+        tuple_t1 = tuple_hash[state_tuple] #Get the list of information
+        tuple_t = tuple_t1[1] #Grab the post information hash
+#        print(tuple_t)
+        tuple_t_key = list(tuple_t.keys()) #Make a list containg all the # of keys
+        tuple_t_val = list(tuple_t.values()) #Make a list containg all the # of values
+        prob_total = sum(tuple_t_val) #Get  the total occurnces
+        prob = {}
+        for node in range(0, N):   
+            prob_dict = {}
+            for value in range(n):
+                value_count = 0
+                for key in range(len(tuple_t_key)):
+                    if tuple_t_key[key][node] == value + 1:
+                        value_count += tuple_t_val[key]
+                if value in prob_dict.keys():
+                    prob_dict[value] += value_count
+                elif value_count > 0:
+                    prob_dict[value] = value_count
+            for value in prob_dict.keys():
+                prob_dict[value] = prob_dict[value]/prob_total
+            prob[node] = prob_dict
+#            print('prob = ', prob)
+        prob_dist_whole = {}
+        for key in tuple_t.keys():
+#            print(key)
+            key2 = get_i_fr_tuple(key)
+#            print(key2)
+            prob_dist_whole[key2] = 1
+            for node in range(N):
+                prob_dist_whole[key2] *= prob[node][key[node] - 1]                        
+        return prob_dist_whole
+
+    #Pc(Xt-1|Xt=X)  calculation    
+    elif argument == 1:
+    
+        #Initilize varibles
+        tuple_t1 = tuple_hash[state_tuple] #Get the list of information
+        tuple_t = tuple_t1[2] #Grab the post information hash
+        tuple_t_key = list(tuple_t.keys()) #Make a list containg all the # of keys
+        tuple_t_val = list(tuple_t.values()) #Make a list containg all the # of values
+        prob_total = sum(tuple_t_val) #Get  the total occurnces
+        prob = {}
+        for node in range(0, N):   
+            prob_dict = {}
+            for value in range(n):
+                value_count = 0
+                for key in range(len(tuple_t_key)):
+                    if tuple_t_key[key][node] == value + 1:
+                        value_count += tuple_t_val[key]
+                if value in prob_dict.keys():
+                    prob_dict[value] += value_count
+                elif value_count > 0:
+                    prob_dict[value] = value_count
+            for value in prob_dict.keys():
+                prob_dict[value] = prob_dict[value]/prob_total
+            prob[node] = prob_dict
+#            print(prob)
+        prob_dist_whole = {}
+        for key in tuple_t.keys():
+#            print(key)
+            key2 = get_i_fr_tuple(key)
+#            print(key2)
+            prob_dist_whole[key2] = 1
+            for node in range(N):
+                prob_dist_whole[key2] *= prob[node][key[node] - 1]                        
+        return prob_dist_whole
+    
+    #There should be no other value than 0 or one passed to this    
+    else:
+        raise ValueError("Bad value sent in args for cal_p")
+        
 
 def cal_p_i(graph, state_tuple, tuple_hash, args):
 
@@ -284,12 +285,12 @@ def join_hash(hash_1, hash_2):
 
     
     
-	for key,val in hash_2.items():
-		if not key in hash_1:
-			hash_1[key] =val 
-		else:
-			hash_1[key] += val
-	return hash_1
+    for key,val in hash_2.items():
+        if not key in hash_1:
+            hash_1[key] =val 
+        else:
+            hash_1[key] += val
+    return hash_1
     
 def get_probs_from_hash(place, match_hash):
     my_hash = {}

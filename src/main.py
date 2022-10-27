@@ -6,8 +6,7 @@ import csv
 from cal_p_current import *
 #from get_all_graphs import *
 from tuple_time_series import *
-import phi_params_27Apr22 as conf
-import nodes_conf as nodes_conf
+import phi_params as conf
 from scipy.stats import wasserstein_distance
 import matplotlib.pyplot as plt
 import numpy as np
@@ -194,8 +193,7 @@ def wasserstein_hash_2_list(hash1, hash2):
 # the conditional cause and effect repertoire probability distributions, calculates sliding windows of Phi values
 # and displays the results over time
 def run_phi():
-    f = open("nodes_conf.py" , "w")
-    f.write("num_of_nodes = ")
+    f = open("nodes_conf.txt" , "w")
     f.write(str(conf.num_of_nodes))
     f.write("\n")
     f.close()
@@ -244,9 +242,9 @@ def run_phi():
         # Compute ICA and determine the number of nodes that minimizes the sum of the square of the errors for the sliding window
         if conf.ICA_switch == True:
             [S_, num_of_nodes] = compute_ica(conf.input_file, starting_value, conf.int_len, conf.max_nodes)
-            f = open("nodes_conf.py" , "w")
-            f.write("num_of_nodes = ")
+            f = open("nodes_conf.txt" , "w")
             f.write(str(num_of_nodes))
+            f.write("\n")
             f.close()
         
         #Initilize vectors to hold D(Pe || Pe(i)) and D(Pc || Pc(i))
@@ -325,11 +323,44 @@ def run():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument('--output-file', type=str, default="output.png", help='The name of a PNG file where output will be written.')
+    parser.add_argument("--input-file", type=str, default="input.csv",
+        help="The name of the input CSV file.")
+    parser.add_argument("--output-file", type=str, default="output.png", 
+        help="The name of a PNG file where output will be written.")
+    parser.add_argument("--window-length", type=int, default=20,
+        help="This is the desired length of the sliding window used. " + \
+             "The code calculates new Phi values across each window, allowing one to see how Phi varies over time.")
+    parser.add_argument("--bins", type=int, default=5,
+        help="Bins the time-series data for each node into a given number of bins.")
+    parser.add_argument("--nodes", type=int, default=3,
+        help="initializes the number of nodes/features used to calculate Phi. Example graph " + \
+             "partitions can be viewed in the files. If Independent Component Analysis (ICA) " + \
+             "is turned on, this number will be recomputed on the fly, based upon the " + \
+             "dimensional reduction from sk-learn's ICA routine.")
+    parser.add_argument("--columns_to_skip", type=int, default=0,
+        help="Number of columns to skip.")
+    parser.add_argument("--csv-separator", type=str, default=",",
+        help="Column separator in the CSV file.")
+    parser.add_argument("--window-start", type=int, default=1,
+        help="Sliding window start.")
+    parser.add_argument("--max-nodes", type=int, default=50,
+        help="Max nodes.")
+    parser.add_argument("--ica-switch", type=bool, default=True,
+        help="ICA switch.")
 
     args = parser.parse_args()
 
     output_file_name = args.output_file
+
+    conf.input_file = args.input_file
+    conf.int_len = args.window_length
+    conf.num_of_bins = args.bins
+    conf.num_of_nodes = args.nodes
+    conf.no_of_cols_to_skip = args.columns_to_skip
+    conf.delim = args.csv_separator
+    conf.sliding_window_start = args.window_start
+    conf.max_nodes = args.max_nodes
+    conf.ICA_switch = args.ica_switch
 
     phi_vals = run_phi()
     phi_mean = np.mean(np.array(phi_vals))
