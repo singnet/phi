@@ -333,6 +333,8 @@ def run():
         help="URL pointing to a CSV file.")
     parser.add_argument("--input-file", type=str, default="input.csv",
         help="The name of the input CSV file.")
+    parser.add_argument("--text-output-file", type=str, default="/tmp/output.txt",
+        help="The name of a file to write a textual version of the output.")
     parser.add_argument("--output-file", type=str, default="output.png", 
         help="The name of a PNG file where output will be written.")
     parser.add_argument("--timeout", type=int, default=1,
@@ -347,7 +349,7 @@ def run():
              "partitions can be viewed in the files. If Independent Component Analysis (ICA) " + \
              "is turned on, this number will be recomputed on the fly, based upon the " + \
              "dimensional reduction from sk-learn's ICA routine.")
-    parser.add_argument("--columns_to_skip", type=int, default=0,
+    parser.add_argument("--columns-to-skip", type=int, default=0,
         help="Number of columns to skip.")
     parser.add_argument("--csv-separator", type=str, default=",",
         help="Column separator in the CSV file.")
@@ -374,6 +376,7 @@ def run():
         conf.input_file = args.input_file
 
     output_file_name = args.output_file
+    text_output_file_name = args.text_output_file
     timeout_time = args.timeout
 
     conf.int_len = args.window_length
@@ -405,7 +408,7 @@ def run():
         phi_mean = np.mean(np.array(phi_vals))
         phi_sd = np.std(np.array(phi_vals))
         info_string = "Phi (STD %2.6f, MEAN: %1.3f)" % (phi_sd, phi_mean)
-        with open("/tmp/output.txt", "w") as f:
+        with open(text_output_file_name, "w") as f:
             f.write(str(phi_mean) + "\n")
             f.write(str(phi_sd) + "\n")
             values = [str(val) for val in phi_vals]
