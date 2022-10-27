@@ -5,7 +5,7 @@ from scipy import signal
 import sys
 import csv
 from sklearn import decomposition
-import phi_params_27Apr22 as conf
+import phi_params as conf
 
 from sklearn.decomposition import FastICA, PCA, fastica
 from numpy import genfromtxt
