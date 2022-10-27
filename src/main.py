@@ -1,3 +1,4 @@
+import argparse
 from binner import *
 from build_hash import *
 import csv
@@ -313,18 +314,34 @@ def run_phi():
 #    plt.savefig("image_results/window" + str(conf.int_len) + "_noOfBins" + str(conf.num_of_bins) + ".png")
 #    plt.clf()
 
-phi_vals = run_phi()
-phi_mean = np.mean(np.array(phi_vals))
-phi_sd = np.std(np.array(phi_vals))
-info_string = "Phi (STD %2.6f, MEAN: %1.3f)" % (phi_sd, phi_mean)
-#Plot the phi values
-plt.plot(phi_vals, label = info_string)
-plt.legend()
-plt.show(block = False)
-plt.savefig("image_results/window" + str(conf.int_len) + "_noOfBins" + str(conf.num_of_bins) + ".png")
-plt.clf()
-
 #with open("/Users/moikle_admin/Research/SingularityNET/Python/Phi Pipeline/phi_vals.py" , "wb") as f:
 #    pickle.dump(phi_vals, f)
 #with open("/Users/moikle_admin/Research/SingularityNET/Python/Phi Pipeline/num_of_nodes.py" , "wb") as f:
 #    pickle.dump(conf.num_of_nodes, f)
+
+def run():
+    parser = argparse.ArgumentParser(
+        "Takes as input a time series of values (importance or excitation values for example) and returns a time series of estimated Tononi Phi values.", 
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    parser.add_argument('--output-file', type=str, default="output.png", help='The name of a PNG file where output will be written.')
+
+    args = parser.parse_args()
+
+    output_file_name = args.output_file
+
+    phi_vals = run_phi()
+    phi_mean = np.mean(np.array(phi_vals))
+    phi_sd = np.std(np.array(phi_vals))
+    info_string = "Phi (STD %2.6f, MEAN: %1.3f)" % (phi_sd, phi_mean)
+    #Plot the phi values
+    plt.plot(phi_vals, label = info_string)
+    plt.legend()
+    plt.show(block = False)
+    #plt.savefig("image_results/window" + str(conf.int_len) + "_noOfBins" + str(conf.num_of_bins) + ".png")
+    plt.savefig(output_file_name)
+    plt.clf()
+
+if __name__ == "__main__":
+    run()

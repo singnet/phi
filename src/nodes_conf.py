@@ -1,1 +1,1 @@
-num_of_nodes = 3
+num_of_nodes = 10
