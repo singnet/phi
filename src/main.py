@@ -1,3 +1,5 @@
+import time
+import shutil
 import argparse
 from binner import *
 from build_hash import *
@@ -11,6 +13,8 @@ from scipy.stats import wasserstein_distance
 import matplotlib.pyplot as plt
 import numpy as np
 from ica import compute_ica
+from numpy.linalg import LinAlgError
+
 
 # Function that takes two lists as inputs and returns a list of the set union of the two lists
 def Union(lst1, lst2):
@@ -327,6 +331,8 @@ def run():
         help="The name of the input CSV file.")
     parser.add_argument("--output-file", type=str, default="output.png", 
         help="The name of a PNG file where output will be written.")
+    parser.add_argument("--timeout", type=int, default=1,
+        help="Timeout in minutes.")
     parser.add_argument("--window-length", type=int, default=20,
         help="This is the desired length of the sliding window used. " + \
              "The code calculates new Phi values across each window, allowing one to see how Phi varies over time.")
@@ -351,6 +357,7 @@ def run():
     args = parser.parse_args()
 
     output_file_name = args.output_file
+    timeout_time = args.timeout
 
     conf.input_file = args.input_file
     conf.int_len = args.window_length
@@ -362,17 +369,33 @@ def run():
     conf.max_nodes = args.max_nodes
     conf.ICA_switch = args.ica_switch
 
-    phi_vals = run_phi()
-    phi_mean = np.mean(np.array(phi_vals))
-    phi_sd = np.std(np.array(phi_vals))
-    info_string = "Phi (STD %2.6f, MEAN: %1.3f)" % (phi_sd, phi_mean)
-    #Plot the phi values
-    plt.plot(phi_vals, label = info_string)
-    plt.legend()
-    plt.show(block = False)
-    #plt.savefig("image_results/window" + str(conf.int_len) + "_noOfBins" + str(conf.num_of_bins) + ".png")
-    plt.savefig(output_file_name)
-    plt.clf()
+    timeout = False
+    stopwatch_start = time.perf_counter()
+    while not timeout:
+        try:
+            phi_vals = run_phi()
+            break
+        except LinAlgError as exception:
+            print("numpy.linalg.LinAlgError: Singular matrix")
+            if (time.perf_counter() - stopwatch_start) // 60 > timeout_time:
+                timeout = True
+                print("Timeout")
+            else:
+                print("Retrying...")
+
+    if timeout:
+        shutil.copyfile("error.png", output_file_name)
+    else:
+        phi_mean = np.mean(np.array(phi_vals))
+        phi_sd = np.std(np.array(phi_vals))
+        info_string = "Phi (STD %2.6f, MEAN: %1.3f)" % (phi_sd, phi_mean)
+        #Plot the phi values
+        plt.plot(phi_vals, label = info_string)
+        plt.legend()
+        plt.show(block = False)
+        #plt.savefig("image_results/window" + str(conf.int_len) + "_noOfBins" + str(conf.num_of_bins) + ".png")
+        plt.savefig(output_file_name)
+        plt.clf()
 
 if __name__ == "__main__":
     run()
