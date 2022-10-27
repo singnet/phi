@@ -1,3 +1,4 @@
+import os
 import time
 import shutil
 import urllib.request
@@ -399,11 +400,16 @@ def run():
                 print("Retrying...")
 
     if timeout:
-        shutil.copyfile("error.png", output_file_name)
+        shutil.copyfile(f"{os.getenv('PROJECT_DIR')}/error.png", output_file_name)
     else:
         phi_mean = np.mean(np.array(phi_vals))
         phi_sd = np.std(np.array(phi_vals))
         info_string = "Phi (STD %2.6f, MEAN: %1.3f)" % (phi_sd, phi_mean)
+        with open("/tmp/output.txt", "w") as f:
+            f.write(str(phi_mean) + "\n")
+            f.write(str(phi_sd) + "\n")
+            values = [str(val) for val in phi_vals]
+            f.write(",".join(values) + "\n")
         #Plot the phi values
         plt.plot(phi_vals, label = info_string)
         plt.legend()
