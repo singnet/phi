@@ -1,5 +1,6 @@
 import time
 import shutil
+import urllib.request
 import argparse
 from binner import *
 from build_hash import *
@@ -327,6 +328,8 @@ def run():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
+    parser.add_argument("--input-url", type=str,
+        help="URL pointing to a CSV file.")
     parser.add_argument("--input-file", type=str, default="input.csv",
         help="The name of the input CSV file.")
     parser.add_argument("--output-file", type=str, default="output.png", 
@@ -355,11 +358,23 @@ def run():
         help="ICA switch.")
 
     args = parser.parse_args()
+    if args.input_url:
+        print(f"Input url: {args.input_url}")
+        conf.input_file = "/tmp/input.csv"
+        #data = urllib.request.urlopen(args.input_url).read(1000000).split("\n")
+        url_file = urllib.request.urlopen(args.input_url)
+        data = url_file.read(1000000)
+        data = data.splitlines()
+        with open(conf.input_file, "w") as file:
+            for line in data:
+                file.write(line.decode())
+                file.write("\n")
+    else:
+        conf.input_file = args.input_file
 
     output_file_name = args.output_file
     timeout_time = args.timeout
 
-    conf.input_file = args.input_file
     conf.int_len = args.window_length
     conf.num_of_bins = args.bins
     conf.num_of_nodes = args.nodes
@@ -377,7 +392,7 @@ def run():
             break
         except LinAlgError as exception:
             print("numpy.linalg.LinAlgError: Singular matrix")
-            if (time.perf_counter() - stopwatch_start) // 60 > timeout_time:
+            if (time.perf_counter() - stopwatch_start) // 60 >= timeout_time:
                 timeout = True
                 print("Timeout")
             else:
